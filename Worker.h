@@ -4,17 +4,17 @@
 
 class WORKER {
 private:
-    std::string fio_;       // Р¤РРћ СЂР°Р±РѕС‚РЅРёРєР°
-    std::string position_;  // РґРѕР»Р¶РЅРѕСЃС‚СЊ
-    int hireYear_;          // РіРѕРґ РїРѕСЃС‚СѓРїР»РµРЅРёСЏ
+    std::string fio_;       // ФИО работника
+    std::string position_;  // должность
+    int hireYear_;          // год поступления
 
 public:
-    // РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂС‹
+    // Конструкторы
     WORKER();
     WORKER(const std::string& fio, const std::string& position, int hireYear);
     WORKER(const WORKER& other);
 
-    // Р”РѕСЃС‚СѓРї (get/set)
+    // Доступ (get/set)
     const std::string& getFIO() const;
     const std::string& getPosition() const;
     int getHireYear() const;
@@ -23,10 +23,10 @@ public:
     void setPosition(const std::string& pos);
     void setHireYear(int year);
 
-    // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅРѕРµ: РїРѕР»СѓС‡РёС‚СЊ С„Р°РјРёР»РёСЋ (РїРµСЂРІРѕРµ СЃР»РѕРІРѕ РёР· Р¤РРћ)
+    // Вспомогательное: получить фамилию (первое слово из ФИО)
     std::string getSurname() const;
 
-    // РџРµСЂРµРіСЂСѓР¶РµРЅРЅС‹Рµ РїРѕС‚РѕРєРё
+    // Перегруженные потоки
     friend std::ostream& operator<<(std::ostream& os, const WORKER& w);
     friend std::istream& operator>>(std::istream& is, WORKER& w);
 };

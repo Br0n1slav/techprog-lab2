@@ -7,12 +7,9 @@
 #include <string>
 #include <vector>
 #include "Worker.h"
-
-#ifdef _WIN32
 #include <windows.h>
-#endif
 
-// ===== Р§Р°СЃС‚СЊ 2: РїСЂРµРґР»РѕР¶РµРЅРёСЏ Р±РµР· Р·Р°РїСЏС‚С‹С… =====
+// ===== Часть 2: предложения без запятых =====
 static std::string readFileAll(const std::string& path) {
     std::ifstream in(path);
     std::ostringstream buf;
@@ -26,7 +23,7 @@ static std::vector<std::string> splitSentences(const std::string& text) {
     for (char ch : text) {
         cur.push_back(ch);
         if (ch == '.' || ch == '!' || ch == '?') {
-            // РѕР±СЂРµР·Р°РµРј РїСЂРѕР±РµР»С‹ РїРѕ РєСЂР°СЏРј
+            // обрезаем пробелы по краям
             size_t l = 0, r = cur.size();
             while (l < r && std::isspace((unsigned char)cur[l])) ++l;
             while (r > l && std::isspace((unsigned char)cur[r - 1])) --r;
@@ -34,7 +31,7 @@ static std::vector<std::string> splitSentences(const std::string& text) {
             cur.clear();
         }
     }
-    // РµСЃР»Рё РѕСЃС‚Р°Р»СЃСЏ С…РІРѕСЃС‚ Р±РµР· С‚РµСЂРјРёРЅР°С‚РѕСЂР° вЂ” С‚РѕР¶Рµ РґРѕР±Р°РІРёРј
+    // если остался хвост без терминатора — тоже добавим
     if (!cur.empty()) {
         size_t l = 0, r = cur.size();
         while (l < r && std::isspace((unsigned char)cur[l])) ++l;
@@ -47,7 +44,7 @@ static std::vector<std::string> splitSentences(const std::string& text) {
 static void printSentencesWithoutCommas(const std::string& filename) {
     std::string text = readFileAll(filename);
     if (text.empty()) {
-        std::cout << "Р¤Р°Р№Р» РїСѓСЃС‚РѕР№ РёР»Рё РЅРµ РЅР°Р№РґРµРЅ.\n";
+        std::cout << "Файл пустой или не найден.\n";
         return;
     }
     auto sentences = splitSentences(text);
@@ -59,11 +56,11 @@ static void printSentencesWithoutCommas(const std::string& filename) {
         }
     }
     if (!any) {
-        std::cout << "РќРµС‚ РїСЂРµРґР»РѕР¶РµРЅРёР№ Р±РµР· Р·Р°РїСЏС‚С‹С….\n";
+        std::cout << "Нет предложений без запятых.\n";
     }
 }
 
-// ===== Р§Р°СЃС‚СЊ 1: WORKER + СЃРѕСЂС‚РёСЂРѕРІРєР° + СЃС‚Р°Р¶ =====
+// ===== Часть 1: WORKER + сортировка + стаж =====
 static int currentYear() {
     std::time_t t = std::time(nullptr);
     std::tm* tm_ptr = std::localtime(&t);
@@ -71,20 +68,21 @@ static int currentYear() {
 }
 
 static void inputWorkersInteractive(std::vector<WORKER>& arr) {
-    std::cout << "Р’РІРѕРґ СЂР°Р±РѕС‚РЅРёРєРѕРІ. (Р’РІРѕРґ exit вЂ” Р·Р°РІРµСЂС€РµРЅРёРµ.)\n";
+    std::cout << "Ввод работников. (Ввод exit — завершение.)\n";
     while (true) {
+        std::cin.clear();
         std::string fio;
-        std::cout << "Р¤РРћ: ";
+        std::cout << "ФИО: ";
         std::getline(std::cin, fio);
         if (fio.empty()) break;
 
         std::string pos;
-        std::cout << "Р”РѕР»Р¶РЅРѕСЃС‚СЊ: ";
+        std::cout << "Должность: ";
         std::getline(std::cin, pos);
 
         std::string yearLine;
         int year = 0;
-        std::cout << "Р“РѕРґ РїРѕСЃС‚СѓРїР»РµРЅРёСЏ: ";
+        std::cout << "Год поступления: ";
         std::getline(std::cin, yearLine);
         std::istringstream(yearLine) >> year;
 
@@ -96,7 +94,7 @@ static void sortAlphabeticallyBySurname(std::vector<WORKER>& arr) {
     std::sort(arr.begin(), arr.end(), [](const WORKER& a, const WORKER& b) {
         std::string sa = a.getSurname();
         std::string sb = b.getSurname();
-        // РЅРµС‡СѓРІСЃС‚РІРёС‚РµР»СЊРЅРѕ Рє СЂРµРіРёСЃС‚СЂСѓ
+        // нечувствительно к регистру
         auto tolow = [](std::string s) {
             for (char& c : s) c = (char)std::tolower((unsigned char)c);
             return s;
@@ -104,7 +102,7 @@ static void sortAlphabeticallyBySurname(std::vector<WORKER>& arr) {
         sa = tolow(sa);
         sb = tolow(sb);
         if (sa != sb) return sa < sb;
-        // РµСЃР»Рё С„Р°РјРёР»РёРё СЃРѕРІРїР°РґР°СЋС‚ вЂ” СЃСЂР°РІРЅРёРј РїРѕР»РЅРѕРµ Р¤РРћ
+        // если фамилии совпадают — сравним полное ФИО
         return tolow(a.getFIO()) < tolow(b.getFIO());
     });
 }
@@ -120,27 +118,25 @@ static void printByExperience(const std::vector<WORKER>& arr, int minYears) {
         }
     }
     if (!any) {
-        std::cout << "РќРµС‚ СЂР°Р±РѕС‚РЅРёРєРѕРІ СЃРѕ СЃС‚Р°Р¶РµРј Р±РѕР»СЊС€Рµ " << minYears << " Р»РµС‚.\n";
+        std::cout << "Нет работников со стажем больше " << minYears << " лет.\n";
     }
 }
 
 int main() {
-#ifdef _WIN32
-    SetConsoleOutputCP(65001);
-    SetConsoleCP(65001);
-#endif
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
 
     std::vector<WORKER> workers;
 
     while (true) {
-        std::cout << "\n=== Р›Р 2 РњРµРЅСЋ ===\n"
-                  << "1) Р’РІРµСЃС‚Рё СЂР°Р±РѕС‚РЅРёРєРѕРІ (РЅРµРёР·РІРµСЃС‚РЅРѕРµ С‡РёСЃР»Рѕ)\n"
-                  << "2) РЎРѕСЂС‚РёСЂРѕРІР°С‚СЊ РїРѕ Р°Р»С„Р°РІРёС‚Сѓ (С„Р°РјРёР»РёСЏ)\n"
-                  << "3) РџРѕРєР°Р·Р°С‚СЊ РІСЃРµС… (<<)\n"
-                  << "4) Р’С‹РІРµСЃС‚Рё С„Р°РјРёР»РёРё СЃРѕ СЃС‚Р°Р¶РµРј > X\n"
-                  << "5) Р—Р°РґР°РЅРёРµ 2: РїСЂРµРґР»РѕР¶РµРЅРёСЏ Р±РµР· Р·Р°РїСЏС‚С‹С… (С‡РёС‚Р°С‚СЊ РёР· С„Р°Р№Р»Р°)\n"
-                  << "0) Р’С‹С…РѕРґ\n"
-                  << "Р’С‹Р±РѕСЂ: ";
+        std::cout << "\n=== ЛР2 Меню ===\n"
+                  << "1) Ввести работников (неизвестное число)\n"
+                  << "2) Сортировать по алфавиту (фамилия)\n"
+                  << "3) Показать всех (<<)\n"
+                  << "4) Вывести фамилии со стажем > X\n"
+                  << "5) Задание 2: предложения без запятых (читать из файла)\n"
+                  << "0) Выход\n"
+                  << "Выбор: ";
 
         int choice = -1;
         if (!(std::cin >> choice)) return 0;
@@ -155,14 +151,14 @@ int main() {
             }
             case 2: {
                 sortAlphabeticallyBySurname(workers);
-                std::cout << "РћС‚СЃРѕСЂС‚РёСЂРѕРІР°РЅРѕ.\n";
+                std::cout << "Отсортировано.\n";
                 break;
             }
             case 3: {
                 if (workers.empty()) {
-                    std::cout << "РЎРїРёСЃРѕРє РїСѓСЃС‚.\n";
+                    std::cout << "Список пуст.\n";
                 } else {
-                    std::cout << "РЎРїРёСЃРѕРє СЂР°Р±РѕС‚РЅРёРєРѕРІ:\n";
+                    std::cout << "Список работников:\n";
                     for (const auto& w : workers) {
                         std::cout << w << "\n";
                     }
@@ -170,7 +166,7 @@ int main() {
                 break;
             }
             case 4: {
-                std::cout << "Р’РІРµРґРёС‚Рµ X (РјРёРЅРёРјР°Р»СЊРЅС‹Р№ СЃС‚Р°Р¶ РІ РіРѕРґР°С…): ";
+                std::cout << "Введите X (минимальный стаж в годах): ";
                 int x = 0;
                 std::cin >> x;
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -178,14 +174,14 @@ int main() {
                 break;
             }
             case 5: {
-                std::cout << "Р’РІРµРґРёС‚Рµ РёРјСЏ С„Р°Р№Р»Р° (РЅР°РїСЂРёРјРµСЂ, text.txt): ";
+                std::cout << "Введите имя файла (например, text.txt): ";
                 std::string fname;
                 std::getline(std::cin, fname);
                 printSentencesWithoutCommas(fname);
                 break;
             }
             default:
-                std::cout << "РќРµРёР·РІРµСЃС‚РЅС‹Р№ РїСѓРЅРєС‚.\n";
+                std::cout << "Неизвестный пункт.\n";
         }
     }
     return 0;

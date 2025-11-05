@@ -22,17 +22,17 @@ std::string WORKER::getSurname() const {
     return surname;
 }
 
-// Р¤РѕСЂРјР°С‚ РІС‹РІРѕРґР°: "Р¤РРћ; РґРѕР»Р¶РЅРѕСЃС‚СЊ; РіРѕРґ"
+// Формат вывода: "ФИО; должность; год"
 std::ostream& operator<<(std::ostream& os, const WORKER& w) {
     os << w.fio_ << "; " << w.position_ << "; " << w.hireYear_;
     return os;
 }
 
-// РђРєРєСѓСЂР°С‚РЅС‹Р№ РІРІРѕРґ Р±РµР· РїРѕРґСЃРєР°Р·РѕРє: С‡РёС‚Р°РµРј С‚СЂРё СЃС‚СЂРѕРєРё (Р¤РРћ, РґРѕР»Р¶РЅРѕСЃС‚СЊ, РіРѕРґ)
+// Аккуратный ввод без подсказок: читаем три строки (ФИО, должность, год)
 std::istream& operator>>(std::istream& is, WORKER& w) {
     std::string fio, pos, yearLine;
 
-    // РёРіРЅРѕСЂРёСЂСѓРµРј РІРµРґСѓС‰РёРµ РїРµСЂРµРІРѕРґС‹ СЃС‚СЂРѕРє
+    // игнорируем ведущие переводы строк
     if (is.peek() == '\n') is.get();
 
     std::getline(is, fio);
