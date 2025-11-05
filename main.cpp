@@ -71,7 +71,7 @@ static int currentYear() {
 }
 
 static void inputWorkersInteractive(std::vector<WORKER>& arr) {
-    std::cout << "Ввод работников. Пустая строка ФИО — завершение.\n";
+    std::cout << "Ввод работников. (Ввод exit — завершение.)\n";
     while (true) {
         std::string fio;
         std::cout << "ФИО: ";
