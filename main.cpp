@@ -41,6 +41,20 @@ static std::vector<std::string> splitSentences(const std::string& text) {
     return res;
 }
 
+size_t my_find(const std::string& text, const std::string& pattern) {
+    if (pattern.empty()) return 0;                     // пустой шаблон ? найден в начале
+    if (pattern.size() > text.size()) return std::string::npos;
+
+    for (size_t i = 0; i <= text.size() - pattern.size(); ++i) {
+        size_t j = 0;
+        while (j < pattern.size() && text[i + j] == pattern[j]) {
+            ++j;
+        }
+        if (j == pattern.size()) return i;            // нашли совпадение
+    }
+    return std::string::npos;                         // не нашли
+}
+
 static void printSentencesWithoutCommas(const std::string& filename) {
     std::string text = readFileAll(filename);
     if (text.empty()) {
@@ -50,7 +64,7 @@ static void printSentencesWithoutCommas(const std::string& filename) {
     auto sentences = splitSentences(text);
     bool any = false;
     for (const auto& s : sentences) {
-        if (s.find(',') == std::string::npos) {
+        if (my_find(s, std::string(",")) == std::string::npos) {
             std::cout << s << "\n";
             any = true;
         }
@@ -129,6 +143,7 @@ int main() {
     std::vector<WORKER> workers;
 
     while (true) {
+        std::cin.clear();
         std::cout << "\n=== ЛР2 Меню ===\n"
                   << "1) Ввести работников (неизвестное число)\n"
                   << "2) Сортировать по алфавиту (фамилия)\n"
@@ -140,7 +155,7 @@ int main() {
 
         int choice = -1;
         if (!(std::cin >> choice)) return 0;
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cin.clear();
 
         if (choice == 0) break;
 
@@ -168,12 +183,14 @@ int main() {
             case 4: {
                 std::cout << "Введите X (минимальный стаж в годах): ";
                 int x = 0;
+                std::cin.clear();
                 std::cin >> x;
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cin.clear();
                 printByExperience(workers, x);
                 break;
             }
             case 5: {
+                std::cin.clear();
                 std::cout << "Введите имя файла (например, text.txt): ";
                 std::string fname;
                 std::getline(std::cin, fname);
