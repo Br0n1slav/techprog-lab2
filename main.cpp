@@ -42,7 +42,7 @@ static std::vector<std::string> splitSentences(const std::string& text) {
 }
 
 size_t my_find(const std::string& text, const std::string& pattern) {
-    if (pattern.empty()) return 0;                     // пустой шаблон ? найден в начале
+    if (pattern.empty()) return 0;                     // пустой шаблон - значит найден в начале
     if (pattern.size() > text.size()) return std::string::npos;
 
     for (size_t i = 0; i <= text.size() - pattern.size(); ++i) {
